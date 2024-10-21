@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-fe5&rk1*mv*_^sebv-kp3-80hxqpdq0bze_z*_j2@+bvldsryp
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['https://habit-s2op.onrender.com']
 
 LOGIN_REDIRECT_URL = '/habit_list/'  # или другой путь, куда должен перенаправлять пользователь после логина
 
