@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Streak - Momentum Tracker{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --bg-color: #e0e5ec;
+        --text-color: #333;
+        --shadow-color: #a3b1c6;
+        --highlight-color: #ffffff;
+        --accent-color: #4a90e2;
+        --success-color: #4caf50;
+        --fire-color: #ff6b6b;
+    }
+
+    .dark-mode {
+        --bg-color: #2c3e50;
+        --text-color: #ecf0f1;
+        --shadow-color: #1a2633;
+        --highlight-color: #34495e;
+        --accent-color: #3498db;
+        --success-color: #2ecc71;
+        --fire-color: #e74c3c;
+    }
+
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 600px;
+        width: 100%;
+        background-color: var(--bg-color);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 10px 10px 20px var(--shadow-color), -10px -10px 20px var(--highlight-color);
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        color: var(--accent-color);
+        margin-bottom: 2rem;
+        text-shadow: 2px 2px 4px var(--shadow-color);
+    }
+
+    .streak-info {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 2rem;
+    }
+
+    .streak-card {
+        background-color: var(--bg-color);
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: inset 5px 5px 10px var(--shadow-color), inset -5px -5px 10px var(--highlight-color);
+        transition: all 0.3s ease;
+    }
+
+    .streak-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .streak-title {
+        font-size: 1.2rem;
+        color: var(--accent-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .streak-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--success-color);
+    }
+
+    .back-btn {
+        display: inline-block;
+        margin-top: 2rem;
+        padding: 1rem 2rem;
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: bold;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 5px 5px 10px var(--shadow-color), -5px -5px 10px var(--highlight-color);
+    }
+
+    .back-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 8px 8px 15px var(--shadow-color), -8px -8px 15px var(--highlight-color);
+    }
+
+    .fire-icon {
+        font-size: 2rem;
+        color: var(--fire-color);
+        margin-bottom: 1rem;
+        animation: flicker 1s infinite alternate;
+    }
+
+    @keyframes flicker {
+        0% { opacity: 0.8; transform: scale(0.95); }
+        100% { opacity: 1; transform: scale(1.05); }
+    }
+
+    .dark-mode-toggle {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: var(--bg-color);
+        box-shadow: 5px 5px 10px var(--shadow-color), -5px -5px 10px var(--highlight-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .dark-mode-toggle:hover {
+        transform: scale(1.1);
+    }
+
+    .dark-mode-toggle i {
+        font-size: 1.5rem;
+        color: var(--text-color);
+    }
+</style>
+
+<div class="container">
+    <h1>Ваш ударный режим</h1>
+    
+    <div class="fire-icon">🔥</div>
+    
+    <div class="streak-info">
+        <div class="streak-card">
+            <div class="streak-title">Текущий streak</div>
+            <div class="streak-value">{{ streak.current_streak }}</div>
+            <div>дней</div>
+        </div>
+        <div class="streak-card">
+            <div class="streak-title">Самый длинный streak</div>
+            <div class="streak-value">{{ streak.longest_streak }}</div>
+            <div>дней</div>
+        </div>
+    </div>
+    
+    <a href="{% url 'habit_list' %}" class="back-btn">Назад</a>
+</div>
+
+<div class="dark-mode-toggle" id="darkModeToggle">
+    <i class="fas fa-moon"></i>
+</div>
+
+<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+<script>
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const body = document.body;
+
+    darkModeToggle.addEventListener('click', () => {
+        body.classList.toggle('dark-mode');
+        const icon = darkModeToggle.querySelector('i');
+        icon.classList.toggle('fa-moon');
+        icon.classList.toggle('fa-sun');
+    });
+
+    // Confetti animation when streak is impressive
+    if ({{ streak.current_streak }} >= 7) {
+        const confettiSettings = { target: 'confetti-canvas', max: 80, size: 2, animate: true };
+        const confetti = new ConfettiGenerator(confettiSettings);
+        confetti.render();
+
+        setTimeout(() => {
+            confetti.clear();
+        }, 3000);
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/confetti-js@0.0.18/dist/index.min.js"></script>
+<canvas id="confetti-canvas" style="position: fixed; top: 0; left: 0; pointer-events: none;"></canvas>
+{% endblock %}

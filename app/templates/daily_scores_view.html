@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}График очков - Momentum Tracker{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --bg-color: #e0e5ec;
+        --text-color: #333;
+        --shadow-color: #a3b1c6;
+        --highlight-color: #ffffff;
+        --accent-color: #4a90e2;
+        --chart-color: rgba(74, 144, 226, 0.7);
+        --chart-border: rgba(74, 144, 226, 1);
+    }
+
+    .dark-mode {
+        --bg-color: #2c3e50;
+        --text-color: #ecf0f1;
+        --shadow-color: #1a2633;
+        --highlight-color: #34495e;
+        --accent-color: #3498db;
+        --chart-color: rgba(52, 152, 219, 0.7);
+        --chart-border: rgba(52, 152, 219, 1);
+    }
+
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        transition: all 0.3s ease;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .container {
+        max-width: 800px;
+        width: 100%;
+        background-color: var(--bg-color);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 10px 10px 20px var(--shadow-color), -10px -10px 20px var(--highlight-color);
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        color: var(--accent-color);
+        margin-bottom: 2rem;
+        text-align: center;
+        text-shadow: 2px 2px 4px var(--shadow-color);
+    }
+
+    .chart-container {
+        background-color: var(--bg-color);
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: inset 5px 5px 10px var(--shadow-color), inset -5px -5px 10px var(--highlight-color);
+        margin-bottom: 2rem;
+    }
+
+    .dark-mode-toggle {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: var(--bg-color);
+        box-shadow: 5px 5px 10px var(--shadow-color), -5px -5px 10px var(--highlight-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .dark-mode-toggle:hover {
+        transform: scale(1.1);
+    }
+
+    .dark-mode-toggle i {
+        font-size: 1.5rem;
+        color: var(--text-color);
+    }
+
+    .stats {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 2rem;
+    }
+
+    .stat-card {
+        background-color: var(--bg-color);
+        border-radius: 15px;
+        padding: 1rem;
+        box-shadow: 5px 5px 10px var(--shadow-color), -5px -5px 10px var(--highlight-color);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-title {
+        font-size: 1rem;
+        color: var(--accent-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+</style>
+
+<div class="container">
+    <h1>График очков</h1>
+    
+    <div class="chart-container">
+        <canvas id="scoreChart"></canvas>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-title">Общее количество очков</div>
+            <div class="stat-value" id="totalScore">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Среднее за день</div>
+            <div class="stat-value" id="averageScore">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Максимум за день</div>
+            <div class="stat-value" id="maxScore">0</div>
+        </div>
+    </div>
+</div>
+
+<div class="dark-mode-toggle" id="darkModeToggle">
+    <i class="fas fa-moon"></i>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+<script>
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const body = document.body;
+    let chart;
+
+    function updateChartColors() {
+        const chartColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-color').trim();
+        const chartBorder = getComputedStyle(document.documentElement).getPropertyValue('--chart-border').trim();
+        
+        chart.data.datasets[0].backgroundColor = chartColor;
+        chart.data.datasets[0].borderColor = chartBorder;
+        chart.options.scales.x.ticks.color = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+        chart.options.scales.y.ticks.color = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+        chart.update();
+    }
+
+    darkModeToggle.addEventListener('click', () => {
+        body.classList.toggle('dark-mode');
+        const icon = darkModeToggle.querySelector('i');
+        icon.classList.toggle('fa-moon');
+        icon.classList.toggle('fa-sun');
+        updateChartColors();
+    });
+
+    var ctx = document.getElementById('scoreChart').getContext('2d');
+    var scores = {{ scores|safe }};
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ days|safe }},
+            datasets: [{
+                label: 'Очки',
+                data: scores,
+                backgroundColor: 'rgba(74, 144, 226, 0.7)',
+                borderColor: 'rgba(74, 144, 226, 1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { 
+                        display: true,
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim()
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim()
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index',
+            },
+        }
+    });
+
+    // Calculate and display statistics
+    const totalScore = scores.reduce((a, b) => a + b, 0);
+    const averageScore = (totalScore / scores.length).toFixed(2);
+    const maxScore = Math.max(...scores);
+
+    document.getElementById('totalScore').textContent = totalScore;
+    document.getElementById('averageScore').textContent = averageScore;
+    document.getElementById('maxScore').textContent = maxScore;
+</script>
+{% endblock %}
